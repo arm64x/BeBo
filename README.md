@@ -1,6 +1,8 @@
 # BeBo
 BeBo is a simple-to-use free temporary file hosting service. It lets you share your photos, documents, music, videos and more with others online with no ads, account sign-up or tracking.
 
+![Screenshot of BeBo](https://github.com/arm64x/BeBo/blob/main/ScreenShot.png)
+
 # Key Features
 1. Drag and Drop Support
 BeBo simplifies file uploads with an intuitive drag-and-drop interface, making it user-friendly for everyone.
