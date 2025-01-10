@@ -31,6 +31,7 @@ Open the config.php file and configure the following options:
 2. Set Up Cron Job
 Schedule a cron job to run the cleanup.php script every second. This ensures files that have reached their expiry time are automatically deleted.
 Example cron job:
+```bash
 * * * * * php /path/to/cleanup.php
        
 
