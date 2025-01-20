@@ -6,7 +6,7 @@ try {
     $config = require __DIR__ . '/config.php';
     require_once __DIR__ . '/helpers.php';
 
-    // Validate file existence
+    // Validate file
     if (!isset($_FILES['file'])) {
         throw new Exception('No file uploaded');
     }
@@ -14,17 +14,17 @@ try {
     $file = $_FILES['file'];
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
-    // Validate file size
+    // Check file size
     if ($file['size'] > $config['max_file_size']) {
         throw new Exception('File too large');
     }
 
-    // Validate file extension
+    // Check file extension
     if (!in_array($extension, $config['allowed_extensions'])) {
         throw new Exception('File type not allowed');
     }
 
-    // Generate random path for file storage
+    // Generate random path
     function generateRandomPath($length = 16) {
         $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $randomString = '';
@@ -34,7 +34,7 @@ try {
         return $randomString;
     }
 
-    // Create upload directory
+    // Setup directories
     $random_dir = generateRandomPath();
     $upload_subdir = $config['upload_dir'] . $random_dir . '/';
 
@@ -44,24 +44,23 @@ try {
         }
     }
 
-    // Generate unique filename and paths
+    // Setup filenames
     $unique_filename = uniqid() . '.' . $extension;
     $relative_path = $random_dir . '/' . $unique_filename;
     $upload_path = $config['upload_dir'] . $relative_path;
 
     // Initialize storage
     $storage = new FileStorage($config['json_file']);
-
-    // Set times
+    
     $current_time = time();
     $expiry_time = $current_time + ($config['default_expiry'] * 3600);
 
-    // Move uploaded file
+    // Move and save file
     if (!move_uploaded_file($file['tmp_name'], $upload_path)) {
         throw new Exception('Failed to move uploaded file');
     }
 
-    // Save file information to JSON storage
+    // Save to JSON
     $fileInfo = [
         'filename' => $unique_filename,
         'filepath' => $relative_path,
@@ -70,19 +69,20 @@ try {
         'expiry_time' => $expiry_time
     ];
     
-    $storage->addFile($fileInfo);
-    
-    // Generate and return download URL
-    $download_url = $config['domain'] . '/dl.php?file=' . $unique_filename;
-    echo json_encode([
+    if (!$storage->addFile($fileInfo)) {
+        throw new Exception('Failed to save file information');
+    }
+
+    // Return success response
+    exit(json_encode([
         'success' => true,
         'filename' => $file['name'],
-        'url' => $download_url
-    ]);
+        'url' => $config['domain'] . '/dl.php?file=' . $unique_filename
+    ]));
 
 } catch (Exception $e) {
-    echo json_encode([
+    exit(json_encode([
         'success' => false,
         'error' => $e->getMessage()
-    ]);
+    ]));
 }
