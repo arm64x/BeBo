@@ -20,12 +20,20 @@ class FileStorage {
     }
     
     private function saveData() {
-        file_put_contents($this->jsonFile, json_encode($this->data, JSON_PRETTY_PRINT));
+        $jsonData = json_encode($this->data, JSON_PRETTY_PRINT);
+        if ($jsonData === false) {
+            throw new Exception("Failed to encode JSON data");
+        }
+        
+        if (file_put_contents($this->jsonFile, $jsonData) === false) {
+            throw new Exception("Failed to write to JSON file");
+        }
     }
     
     public function addFile($fileInfo) {
         $this->data[] = $fileInfo;
         $this->saveData();
+        return true;
     }
     
     public function getFileByName($filename) {
@@ -38,13 +46,15 @@ class FileStorage {
     }
     
     public function deleteExpiredFiles($currentTime) {
+        $expired = array_filter($this->data, function($file) use ($currentTime) {
+            return $file['expiry_time'] <= $currentTime;
+        });
+        
         $this->data = array_filter($this->data, function($file) use ($currentTime) {
             return $file['expiry_time'] > $currentTime;
         });
-        $this->saveData();
         
-        return array_filter($this->data, function($file) use ($currentTime) {
-            return $file['expiry_time'] <= $currentTime;
-        });
+        $this->saveData();
+        return $expired;
     }
 }
