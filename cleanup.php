@@ -1,14 +1,15 @@
 <?php
 $config = require __DIR__ . '/config.php';
-$db = new SQLite3($config['db_file']);
+require_once __DIR__ . '/helpers.php';
 
-// Get expired files
-$stmt = $db->prepare('SELECT filepath FROM files WHERE expiry_time < :current_time');
-$stmt->bindValue(':current_time', time());
-$result = $stmt->execute();
+$storage = new FileStorage($config['json_file']);
 
-while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-    $filepath = $config['upload_dir'] . $row['filepath'];
+// Get and delete expired files
+$currentTime = time();
+$expiredFiles = $storage->deleteExpiredFiles($currentTime);
+
+foreach ($expiredFiles as $file) {
+    $filepath = $config['upload_dir'] . $file['filepath'];
     
     // Delete physical file
     if (file_exists($filepath)) {
@@ -23,7 +24,3 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         }
     }
 }
-
-// Delete database records
-$db->exec('DELETE FROM files WHERE expiry_time < ' . time());
-$db->close();
