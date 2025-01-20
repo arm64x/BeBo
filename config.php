@@ -6,5 +6,5 @@ return [
     'expiry_hours' => [3, 6, 12, 24],
     'upload_dir' => __DIR__ . '/uploads/',
     'default_expiry' => 3, // Default expiry time in hours
-    'db_file' => __DIR__ . '/lt_' . hash('sha256', 'your_secret_key_here') . '.db' // The database file name is hashed
+    'json_file' => __DIR__ . '/lt_' . hash('sha256', 'your_secret_key_here') . '.json' // The database file name is hashed
 ];
