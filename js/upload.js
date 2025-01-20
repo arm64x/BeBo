@@ -121,16 +121,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Show URL
                         fileStatus.className = 'col-6 file-status complete';
                         urlInput.value = response.url;
-
-                        // Add copy functionality
-                        copyBtn.addEventListener('click', () => {
-                            navigator.clipboard.writeText(response.url)
-                                .then(() => {
-                                    copyBtn.textContent = 'Copied!';
-                                    setTimeout(() => {
-                                        copyBtn.textContent = 'Copy';
-                                    }, 2000);
-                                });
+    
+                        // Add copy functionality with fallback
+                        copyBtn.addEventListener('click', async () => {
+                            try {
+                                if (!navigator.clipboard) {
+                                    // Fallback for browsers without Clipboard API
+                                    urlInput.select();
+                                    document.execCommand('copy');
+                                    urlInput.blur();
+                                    showCopySuccess();
+                                } else {
+                                    await navigator.clipboard.writeText(response.url);
+                                    showCopySuccess();
+                                }
+                            } catch (err) {
+                                console.error('Copy failed:', err);
+                                copyBtn.textContent = 'Copy failed';
+                                setTimeout(() => {
+                                    copyBtn.textContent = 'Copy';
+                                }, 2000);
+                            }
                         });
                     } else {
                         showError(fileItem, response.error || 'Upload failed');
@@ -142,6 +153,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 showError(fileItem, 'Upload failed with status: ' + xhr.status);
             }
         });
+    
+        function showCopySuccess() {
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = 'Copy';
+            }, 2000);
+        }
 
         // Upload error event
         xhr.addEventListener('error', () => {
